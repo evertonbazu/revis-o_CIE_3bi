@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REVISÃO DE CIÊNCIAS: 3ºBI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: linear-gradient(to bottom, #1e3a8a, #3b82f6);
+            touch-action: manipulation;
+            /* Otimizado para rolagem em PC, mantendo o comportamento em mobile */
+            overflow: auto;
+        }
+        .option-button {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .option-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .option-button:active {
+            transform: scale(0.98);
+        }
+        #feedback {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        }
+        .screen {
+            min-height: 100vh;
+            width: 100%;
+            padding: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .video-container { 
+            position: relative; 
+            padding-bottom: 56.25%; 
+            height: 0; 
+            overflow: hidden; 
+            max-width: 100%; 
+            background: #000; 
+            border-radius: 1rem; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+        }
+        .video-container iframe { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .heart {
+            color: red;
+            font-size: 2rem;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center">
+
+    <!-- Tela de Login / Cadastro -->
+    <div id="login-screen" class="screen">
+        <div class="bg-white/70 p-6 sm:p-8 rounded-2xl shadow-xl max-w-md w-full text-center">
+            <div id="login-form">
+                <h1 class="text-3xl sm:text-4xl font-bold text-sky-800">Acessar Jogo</h1>
+                <p class="text-lg text-sky-700 mt-4">Digite seu código e senha para entrar. Se for seu primeiro acesso, clique em "Não Tenho Cadastro".</p>
+                <input type="text" id="login-code" placeholder="Seu código (Ex.: 36123.16)" class="mt-8 w-full text-xl p-3 rounded-xl border-4 border-sky-300">
+                <input type="password" id="login-password" placeholder="Sua senha" class="mt-4 w-full text-xl p-3 rounded-xl border-4 border-sky-300">
+                <button id="login-button" class="mt-6 w-full bg-blue-500 text-white text-2xl font-bold py-3 rounded-xl shadow-lg hover:bg-blue-600 transition flex items-center justify-center">
+                    <span class="button-text">Entrar</span>
+                    <div class="loader hidden ml-3"></div>
+                </button>
+                <p id="login-message" class="text-red-500 mt-4 h-5"></p>
+                <div class="flex space-x-2 mt-2">
+                    <button id="go-to-register" class="w-1/2 text-sky-600 hover:underline">Não tenho cadastro</button>
+                    <button id="view-ranking-button" class="w-1/2 text-sky-600 hover:underline">Ver Ranking</button>
+                </div>
+            </div>
+            <div id="register-form" class="hidden">
+                <h1 class="text-3xl sm:text-4xl font-bold text-sky-800">Criar Cadastro</h1>
+                <p class="text-lg text-sky-700 mt-4">Preencha seus dados para criar um acesso.</p>
+                <input type="text" id="register-name" placeholder="Nome Completo" class="mt-8 w-full text-xl p-3 rounded-xl border-4 border-sky-300">
+                <select id="register-class" class="mt-4 w-full text-xl p-3 rounded-xl border-4 border-sky-300 bg-white">
+                    <option value="">Selecione sua turma</option>
+                    <option value="5º Ano A">5º Ano A</option>
+                    <option value="5º Ano B">5º Ano B</option>
+                </select>
+                <input type="text" id="register-code" placeholder="Código de acesso (Ex.: 36123.16)" class="mt-4 w-full text-xl p-3 rounded-xl border-4 border-sky-300">
+                <input type="password" id="register-password" placeholder="Crie uma senha" class="mt-4 w-full text-xl p-3 rounded-xl border-4 border-sky-300">
+                <button id="register-button" class="mt-6 w-full bg-green-500 text-white text-2xl font-bold py-3 rounded-xl shadow-lg hover:bg-green-600 transition flex items-center justify-center">
+                    <span class="button-text">Cadastrar e Entrar</span>
+                    <div class="loader hidden ml-3"></div>
+                </button>
+                <p id="register-message" class="text-red-500 mt-4 h-5"></p>
+                <button id="back-to-login" class="mt-2 text-sky-600 hover:underline">Já tenho cadastro</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tela do Vídeo -->
+    <div id="video-screen" class="screen hidden">
+        <div class="bg-white/70 p-6 sm:p-8 rounded-2xl shadow-xl max-w-3xl w-full text-center">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold text-sky-800">Vamos aprender!</h2>
+            <p class="text-base sm:text-lg text-sky-700 mt-2 mb-4">Assista ao vídeo para revisar o conteúdo!</p>
+            <div class="video-container">
+                <div id="player"></div>
+            </div>
+            <button id="continue-btn" class="mt-8 w-full bg-green-500 text-white text-2xl sm:text-3xl font-bold py-3 sm:py-4 rounded-xl shadow-lg transition transform hover:scale-105 opacity-50 cursor-not-allowed" disabled>
+                Ir para o Jogo!
+            </button>
+            <button id="skip-video-btn" class="mt-2 text-gray-500 hover:text-gray-700 hover:underline">Pular vídeo</button>
+        </div>
+    </div>
+
+    <!-- Tela do Jogo (Quiz) -->
+    <div id="game-screen" class="screen hidden flex-col">
+        <header class="text-center mb-4 sm:mb-8 w-full max-w-4xl">
+            <div class="flex justify-end items-center w-full">
+                <div class="bg-white/50 rounded-full px-4 sm:px-6 py-2">
+                    <span class="text-xl sm:text-2xl font-semibold text-sky-800">Pontos: <span class="score-display">0</span>/12</span>
+                </div>
+            </div>
+            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-white mt-4" style="text-shadow: 2px 2px 4px rgba(0,0,0,0.2);">
+                REVISÃO DE CIÊNCIAS: 3ºBI
+            </h1>
+             <p class="text-lg sm:text-xl text-white mt-2">Olá, <span id="player-firstname"></span>! Escolha a resposta certa.</p>
+        </header>
+        <main class="w-full bg-white/70 p-6 sm:p-8 rounded-2xl shadow-xl text-center max-w-4xl">
+            <div id="question-container" class="mb-6 sm:mb-8 text-xl sm:text-2xl md:text-3xl font-semibold text-sky-800 min-h-[6rem] flex items-center justify-center">
+                <!-- A pergunta aparecerá aqui -->
+            </div>
+            <div id="options-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+                <!-- As opções aparecerão aqui -->
+            </div>
+        </main>
+    </div>
+
+    <!-- Tela Final (Game Over) -->
+    <div id="end-screen" class="screen hidden">
+        <div class="bg-white/70 p-6 sm:p-8 rounded-2xl shadow-xl max-w-3xl w-full text-center my-8">
+            <div id="end-screen-content">
+                <h1 class="text-3xl sm:text-4xl font-bold text-sky-800">Fim de Jogo!</h1>
+                <p id="final-message" class="text-lg text-sky-800 mt-4 font-semibold"></p>
+                <div class="my-6 text-sky-700">
+                    <div class="text-xl"><strong>Pontuação Final:</strong> <span id="final-score">0</span>/12</div>
+                </div>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-bold text-sky-800 mt-6 mb-4">Ranking (Top 100)</h2>
+            <div class="overflow-y-auto h-64 bg-white/50 rounded-lg">
+                <table class="w-full text-left">
+                    <thead class="bg-sky-200 sticky top-0">
+                        <tr>
+                            <th class="p-2">#</th>
+                            <th class="p-2">Nome</th>
+                            <th class="p-2">Pontos</th>
+                            <th class="p-2">Turma</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ranking-body">
+                        <tr><td colspan="4" class="p-8 text-center"><div class="loader mx-auto"></div></td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <button id="play-again-button" class="mt-8 w-full bg-yellow-500 text-white text-2xl sm:text-3xl font-bold py-3 rounded-xl shadow-lg hover:bg-yellow-600 transition">
+                Jogar Novamente
+            </button>
+            <button id="back-from-ranking-button" class="mt-8 w-full bg-gray-500 text-white text-2xl sm:text-3xl font-bold py-3 rounded-xl shadow-lg hover:bg-gray-600 transition hidden">
+                Voltar
+            </button>
+        </div>
+    </div>
+
+    <div id="feedback" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-6 sm:p-8 rounded-2xl text-white text-2xl font-bold shadow-2xl opacity-0 pointer-events-none w-11/12 max-w-sm text-center"></div>
+    
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyvzdtou17UCu8lmOFg9fxVEaLg1FnWcvexCYUZzqNLcUhiE6mZW_OkxeeI874AXZRT/exec';
+        const NOME_DESTE_JOGO = "REVISÃO DE CIÊNCIAS: 3ºBI";
+
+        // --- ELEMENTOS DO DOM ---
+        const loginScreen = document.getElementById('login-screen');
+        const videoScreen = document.getElementById('video-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const endScreen = document.getElementById('end-screen');
+        const continueBtn = document.getElementById('continue-btn');
+        const skipVideoBtn = document.getElementById('skip-video-btn');
+        const loginForm = document.getElementById('login-form');
+        const loginCodeInput = document.getElementById('login-code');
+        const loginPasswordInput = document.getElementById('login-password');
+        const loginButton = document.getElementById('login-button');
+        const loginMessage = document.getElementById('login-message');
+        const goToRegisterButton = document.getElementById('go-to-register');
+        const registerForm = document.getElementById('register-form');
+        const registerNameInput = document.getElementById('register-name');
+        const registerClassInput = document.getElementById('register-class');
+        const registerCodeInput = document.getElementById('register-code');
+        const registerPasswordInput = document.getElementById('register-password');
+        const registerButton = document.getElementById('register-button');
+        const registerMessage = document.getElementById('register-message');
+        const backToLoginButton = document.getElementById('back-to-login');
+        const playerFirstNameEl = document.getElementById('player-firstname');
+        const finalMessageEl = document.getElementById('final-message');
+        const viewRankingButton = document.getElementById('view-ranking-button');
+        const backFromRankingButton = document.getElementById('back-from-ranking-button');
+        const playAgainButton = document.getElementById('play-again-button');
+        const endScreenContent = document.getElementById('end-screen-content');
+        const questionContainer = document.getElementById('question-container');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackEl = document.getElementById('feedback');
+        
+        // --- ESTADO DO JOGO ---
+        let score = 0;
+        let startTime;
+        let loggedInUser = null;
+        let videoPointsInvalidated = false;
+        let currentQuestionIndex = 0;
+        let shuffledQuestions = [];
+
+        // --- BANCO DE PERGUNTAS ---
+        const questions = [
+            // Tema 1: Olhando para o Céu (Astronomia)
+            { question: 'O que é a Lua em relação ao nosso planeta Terra?', options: ['É uma estrela distante com brilho muito forte.', 'É o satélite natural que gira ao redor da Terra.', 'É um planeta pequeno que nos visita de vez em quando.', 'É uma bola de fogo que ilumina todas as noites.'], answer: 'É o satélite natural que gira ao redor da Terra.', explanation: 'A Lua é chamada de satélite natural justamente porque ela fica girando em órbita ao redor do nosso planeta.' },
+            { question: 'Qual é o nome do movimento que a Terra faz ao girar em torno de si mesma, que dura cerca de 24 horas?', options: ['Translação, que cria as estações do ano.', 'Rotação, que cria o dia e a noite no planeta.', 'Lunação, que muda as fases da nossa Lua.', 'Orbital, que move os planetas pelo espaço.'], answer: 'Rotação, que cria o dia e a noite no planeta.', explanation: 'O movimento de rotação é como se a Terra girasse como um pião, e é isso que causa a diferença entre dia e noite.' },
+            { question: 'O que são as constelações, de acordo com as civilizações antigas?', options: ['São planetas muito brilhantes vistos da Terra.', 'São grupos de estrelas que formam desenhos no céu.', 'São luzes de naves espaciais que piscam à noite.', 'São buracos na esfera celeste que mostram a luz.'], answer: 'São grupos de estrelas que formam desenhos no céu.', explanation: 'As pessoas antigamente ligavam os pontos das estrelas para criar figuras imaginárias, como animais e heróis.' },
+            { question: 'Por que conseguimos enxergar a Lua no céu noturno?', options: ['Porque ela tem luz própria como o Sol.', 'Porque ela reflete a luz que recebe do Sol.', 'Porque ela é feita de um material brilhante.', 'Porque a escuridão da noite a faz brilhar.'], answer: 'Porque ela reflete a luz que recebe do Sol.', explanation: 'A Lua funciona como um grande espelho no espaço, refletindo a luz solar para nós.' },
+            { question: 'Qual foi a data importante em que o ser humano pisou na Lua pela primeira vez?', options: ['No dia 20 de julho de 1969.', 'No dia 12 de outubro de 1492.', 'No dia 07 de setembro de 1822.', 'No dia 15 de novembro de 1889.'], answer: 'No dia 20 de julho de 1969.', explanation: 'Essa é a data histórica da missão Apollo 11, quando o astronauta Neil Armstrong deu o primeiro passo na Lua.' },
+            { question: 'As manchas escuras que vemos na Lua são, segundo a ciência:', options: ['Sombras de montanhas muito altas na superfície lunar.', 'Mares de água congelada que existem no solo da Lua.', 'Imagens de coelhos ou cachorros, como dizem as lendas.', 'Um solo escuro formado pela lava de antigos vulcões.'], answer: 'Um solo escuro formado pela lava de antigos vulcões.', explanation: 'A ciência explica que as áreas escuras são regiões onde a lava de vulcões antigos formou um solo mais escuro.' },
+            { question: 'O que são as crateras que existem na superfície da Lua?', options: ['São grandes buracos causados pela queda de corpos celestes.', 'São bases secretas construídas por seres de outros planetas.', 'São áreas onde os astronautas cavaram para pegar rochas.', 'São vulcões que ainda estão ativos e soltam fumaça.'], answer: 'São grandes buracos causados pela queda de corpos celestes.', explanation: 'As crateras são marcas de impactos de meteoritos e outros pedaços de rochas espaciais que atingiram a Lua ao longo de milhões de anos.' },
+            { question: 'O ciclo completo das fases da Lua (Nova, Crescente, Cheia e Minguante) dura aproximadamente:', options: ['24 horas, o mesmo que um dia na Terra.', '365 dias, o mesmo que um ano inteiro.', '29 dias, o que é próximo de um mês.', '7 dias, o mesmo que uma semana.'], answer: '29 dias, o que é próximo de um mês.', explanation: 'Esse período, chamado de lunação, leva cerca de 29 dias para se completar.' },
+            { question: 'Por que o Sol e a Lua parecem ter o mesmo tamanho quando olhamos daqui da Terra?', options: ['Porque eles realmente têm um tamanho muito parecido.', 'Porque o Sol é menor, mas está muito mais perto de nós.', 'Porque a Lua é muito grande, quase do tamanho do Sol.', 'Porque o Sol é gigante, mas está muito mais longe da Terra.'], answer: 'Porque o Sol é gigante, mas está muito mais longe da Terra.', explanation: 'A enorme distância do Sol faz com que ele pareça menor do que realmente é, criando a ilusão de que tem o mesmo tamanho da Lua, que está bem mais perto.' },
+            { question: 'O que causa as diferentes fases da Lua que vemos no céu?', options: ['A sombra do planeta Terra cobrindo partes da Lua.', 'As nuvens que passam na frente da Lua e a escondem.', 'O movimento da Lua ao redor da Terra e a luz do Sol.', 'A Lua que gira e mostra seus diferentes lados para nós.'], answer: 'O movimento da Lua ao redor da Terra e a luz do Sol.', explanation: 'Conforme a Lua gira ao redor da Terra, vemos diferentes partes de sua face iluminada pelo Sol.' },
+            { question: 'Qual a importância das constelações para os povos indígenas brasileiros?', options: ['Elas serviam apenas para criar histórias de deuses e heróis.', 'Elas indicavam onde havia tesouros escondidos na floresta.', 'Elas ajudavam a marcar as estações do ano e a orientar atividades.', 'Elas eram usadas para prever o futuro das pessoas da tribo.'], answer: 'Elas ajudavam a marcar as estações do ano e a orientar atividades.', explanation: 'A constelação da Ema, por exemplo, marcava o início do inverno, indicando a melhor época para certas caças ou plantios.' },
+            { question: 'Se você observar a Lua no Hemisfério Sul, como ela parecerá em relação a quem a vê no Hemisfério Norte?', options: ['Ela parecerá exatamente igual, sem nenhuma diferença.', 'Ela parecerá de cabeça para baixo, ou seja, invertida.', 'Ela parecerá muito maior e com um brilho mais forte.', 'Ela parecerá menor e com as manchas mais apagadas.'], answer: 'Ela parecerá de cabeça para baixo, ou seja, invertida.', explanation: 'Devido à curvatura da Terra, um observador no Hemisfério Sul vê a Lua de forma invertida em relação a um observador no Hemisfério Norte.' },
+            { question: 'Por que as estrelas parecem se mover no céu durante a noite?', options: ['Porque as estrelas estão realmente se movendo rápido no espaço.', 'Porque o planeta Terra está girando em seu próprio eixo.', 'Porque a Lua puxa as estrelas com sua força da gravidade.', 'Porque o vento na atmosfera empurra a luz das estrelas.'], answer: 'Porque o planeta Terra está girando em seu próprio eixo.', explanation: 'O movimento que vemos é uma ilusão causada pela rotação da Terra. É como estar em um carrossel e ver o parque girando.' },
+            { question: 'Um astronauta vai para a Lua e deixa uma pegada no solo. O que provavelmente acontecerá com essa pegada depois de muitos anos?', options: ['A chuva e o vento irão apagar a pegada rapidamente.', 'A pegada vai desaparecer quando o solo lunar se mover.', 'A pegada permanecerá lá, quase igual, por muito tempo.', 'Outros astronautas irão passar por cima e apagar a marca.'], answer: 'A pegada permanecerá lá, quase igual, por muito tempo.', explanation: 'Como não há fenômenos climáticos na Lua, as marcas deixadas pelos astronautas, como as da missão Apollo 11, ficam preservadas.' },
+            { question: 'Se você quisesse observar as constelações que estarão visíveis na sua cidade no próximo sábado às 21h, qual ferramenta seria mais útil?', options: ['Um binóculo potente para ver a superfície da Lua.', 'Um mapa-múndi para localizar sua cidade no planeta.', 'Um planisfério celeste ou um aplicativo de astronomia.', 'Um calendário para saber em qual estação do ano estamos.'], answer: 'Um planisfério celeste ou um aplicativo de astronomia.', explanation: 'O planisfério celeste e os aplicativos de astronomia são ferramentas criadas exatamente para isso: mostrar o mapa do céu em uma data e hora específicas.' },
+            { question: 'Imagine que hoje a Lua está na fase Cheia. Como ela provavelmente estará daqui a uma ou duas semanas?', options: ['Ela estará na fase Nova, quase invisível no céu.', 'Ela estará na fase Minguante, parecendo menor.', 'Ela continuará na fase Cheia, brilhante e redonda.', 'Ela estará na fase Crescente, com formato de "C".'], answer: 'Ela estará na fase Minguante, parecendo menor.', explanation: 'Após a fase Cheia, a parte iluminada da Lua começa a "minguar", ou seja, diminuir. Uma semana depois, ela estará em Quarto Minguante.' },
+            
+            // Tema 2: A Viagem dos Alimentos (Sistema Digestório)
+            { question: 'Qual é o primeiro órgão do sistema digestório onde o alimento começa a ser transformado?', options: ['O estômago, onde o suco gástrico dissolve tudo.', 'A boca, com a ajuda dos dentes, da língua e da saliva.', 'O intestino, onde os nutrientes são finalmente absorvidos.', 'O esôfago, que empurra a comida para baixo com força.'], answer: 'A boca, com a ajuda dos dentes, da língua e da saliva.', explanation: 'A digestão começa na boca, com a mastigação (digestão mecânica) e a ação da saliva (início da digestão química).' },
+            { question: 'O que é a digestão, de forma simplificada?', options: ['O processo de escolher os alimentos mais saudáveis para comer.', 'O processo de transformar os alimentos em pedaços bem pequenos (nutrientes).', 'O processo de sentir o gosto e o cheiro da comida antes de engolir.', 'O processo de guardar a energia dos alimentos nos músculos do corpo.'], answer: 'O processo de transformar os alimentos em pedaços bem pequenos (nutrientes).', explanation: 'A digestão "quebra" os alimentos em partes minúsculas, os nutrientes, que o corpo consegue aproveitar.' },
+            { question: 'Depois de passar pelo estômago, para qual órgão o bolo alimentar vai?', options: ['Para o intestino grosso, para formar as fezes.', 'Para o intestino delgado, para continuar a digestão.', 'Para o fígado, onde a gordura é filtrada e guardada.', 'Para a boca novamente, se a comida não fizer bem.'], answer: 'Para o intestino delgado, para continuar a digestão.', explanation: 'Do estômago, o alimento segue para o intestino delgado, onde a maior parte da digestão e absorção de nutrientes acontece.' },
+            { question: 'Qual a principal função do intestino grosso no sistema digestório?', options: ['Digerir todas as proteínas e gorduras da alimentação.', 'Absorver a água do que restou e formar as fezes.', 'Produzir o suco gástrico para quebrar os alimentos.', 'Misturar o alimento com a bile produzida no fígado.'], answer: 'Absorver a água do que restou e formar as fezes.', explanation: 'O intestino grosso recebe o que não foi aproveitado, absorve a maior parte da água e forma as fezes, que serão eliminadas.' },
+            { question: 'O que são os dentes "de leite"?', options: ['São dentes que nascem em adultos para substituir os antigos.', 'São os dentes que só servem para mastigar doces e balas.', 'São os primeiros dentes que nascem quando somos crianças.', 'São dentes feitos de um material mais fraco que o normal.'], answer: 'São os primeiros dentes que nascem quando somos crianças.', explanation: 'Também chamados de dentes temporários, eles aparecem nos primeiros anos de vida e depois são trocados pelos dentes permanentes.' },
+            { question: 'Qual é o nome do líquido produzido na boca que ajuda a umedecer o alimento e iniciar a digestão?', options: ['Suco gástrico.', 'Sangue.', 'Saliva.', 'Bile.'], answer: 'Saliva.', explanation: 'A saliva é produzida pelas glândulas salivares e é essencial para formar o bolo alimentar e começar a digestão química.' },
+            { question: 'As quatro etapas do processamento dos alimentos na ordem correta são:', options: ['Digestão, ingestão, eliminação e absorção.', 'Ingestão, digestão, absorção e eliminação.', 'Absorção, eliminação, ingestão e digestão.', 'Eliminação, absorção, digestão e ingestão.'], answer: 'Ingestão, digestão, absorção e eliminação.', explanation: 'Primeiro comemos (ingestão), depois o corpo transforma o alimento (digestão), pega os nutrientes (absorção) e joga fora o que não serve (eliminação).' },
+            { question: 'O que é a cárie?', options: ['É uma mancha natural que aparece nos dentes com a idade.', 'É o resultado da ação de bactérias que destroem o esmalte do dente.', 'É o nome dado quando um dente de leite cai para dar lugar ao permanente.', 'É um tipo de aparelho usado para alinhar os dentes tortos.'], answer: 'É o resultado da ação de bactérias que destroem o esmalte do dente.', explanation: 'Restos de comida alimentam bactérias na boca, que produzem ácidos que corroem o esmalte dos dentes, formando as cáries.' },
+            { question: 'Qual a diferença entre digestão mecânica e digestão química?', options: ['Mecânica é no estômago e química é no intestino.', 'Mecânica é para líquidos e química é para sólidos.', 'Mecânica é quebrar em pedaços, química é usar substâncias.', 'Mecânica é rápida e química é um processo muito demorado.'], answer: 'Mecânica é quebrar em pedaços, química é usar substâncias.', explanation: 'A digestão mecânica é a parte física (mastigar, movimentos do estômago), enquanto a digestão química usa substâncias (saliva, suco gástrico) para transformar o alimento.' },
+            { question: 'Por que é importante mastigar bem os alimentos antes de engolir?', options: ['Para sentir melhor o gosto da comida por mais tempo.', 'Para facilitar o trabalho do estômago e dos intestinos.', 'Para evitar que a comida chegue muito rápido ao fim.', 'Para que o cérebro entenda que estamos satisfeitos.'], answer: 'Para facilitar o trabalho do estômago e dos intestinos.', explanation: 'Mastigar bem tritura o alimento em pedaços menores, o que ajuda as substâncias químicas (como a saliva e o suco gástrico) a agirem melhor e torna a digestão mais fácil.' },
+            { question: 'Como o sistema digestório, o respiratório e o circulatório trabalham juntos?', options: ['O digestório digere, o respiratório respira e o circulatório circula, sem se misturar.', 'O digestório dá nutrientes, o respiratório dá oxigênio, e o circulatório entrega tudo.', 'O circulatório leva a comida, o digestório a transforma e o respiratório a elimina.', 'O respiratório filtra a comida, o circulatório a aquece e o digestório a absorve.'], answer: 'O digestório dá nutrientes, o respiratório dá oxigênio, e o circulatório entrega tudo.', explanation: 'Essa é a integração perfeita: o sistema digestório extrai os nutrientes da comida, o sistema respiratório capta o oxigênio do ar, e o sistema circulatório (o sangue) funciona como um "entregador", levando ambos para todas as células do corpo.' },
+            { question: 'O que são os movimentos peristálticos?', options: ['São os movimentos que fazemos com a boca ao mastigar a comida.', 'São as contrações dos músculos que empurram o alimento pelo tubo digestório.', 'São os movimentos do sangue levando os nutrientes para todo o corpo.', 'São os movimentos que o estômago faz quando estamos com fome.'], answer: 'São as contrações dos músculos que empurram o alimento pelo tubo digestório.', explanation: 'O esôfago, o estômago e os intestinos se contraem em ondas para fazer o alimento "caminhar" pelo tubo digestório, mesmo que estejamos de cabeça para baixo.' },
+            { question: 'Uma pessoa comeu um sanduíche. Qual é o caminho mais provável que um pedaço desse sanduíche fará no corpo dela?', options: ['Estômago -> Esôfago -> Boca -> Intestino Delgado.', 'Boca -> Estômago -> Esôfago -> Intestino Grosso.', 'Boca -> Esôfago -> Estômago -> Intestino Delgado.', 'Esôfago -> Boca -> Intestino Delgado -> Estômago.'], answer: 'Boca -> Esôfago -> Estômago -> Intestino Delgado.', explanation: 'Esta é a sequência correta das principais partes do tubo digestório: o alimento entra pela boca, desce pelo esôfago, é digerido no estômago e segue para o intestino delgado.' },
+            { question: 'Por que as fibras, presentes em frutas e verduras, são importantes mesmo não sendo digeridas?', options: ['Porque elas dão muita energia rápida para o corpo, como os doces.', 'Porque elas ajudam a formar as fezes e facilitam a ida ao banheiro.', 'Porque elas se transformam em vitaminas essenciais no intestino grosso.', 'Porque elas limpam os dentes enquanto mastigamos os alimentos.'], answer: 'Porque elas ajudam a formar as fezes e facilitam a ida ao banheiro.', explanation: 'As fibras não são absorvidas, então elas aumentam o volume do bolo fecal, o que ajuda no funcionamento do intestino e na eliminação das fezes.' },
+
+            // Tema 3: Comida de Verdade (Nutrição e Saúde)
+            { question: 'Qual grupo de nutrientes é a principal fonte de energia para o nosso corpo?', options: ['As proteínas, que constroem os músculos.', 'As vitaminas, que protegem contra doenças.', 'Os carboidratos, presentes em pães e massas.', 'Os lipídios, que são reservas de energia.'], answer: 'Os carboidratos, presentes em pães e massas.', explanation: 'Os carboidratos são a "gasolina" do nosso corpo, fornecendo a energia que usamos para correr, brincar e até pensar.' },
+            { question: 'As proteínas são conhecidas como nutrientes construtores. Onde podemos encontrá-las?', options: ['Em alimentos como azeite, manteiga e abacate.', 'Em alimentos como carnes, ovos, leite e feijão.', 'Em alimentos como arroz, batata, pão e macarrão.', 'Em alimentos como laranja, cenoura e brócolis.'], answer: 'Em alimentos como carnes, ovos, leite e feijão.', explanation: 'Carnes, ovos, laticínios e leguminosas como o feijão são excelentes fontes de proteínas.' },
+            { question: 'O que são alimentos in natura?', options: ['São alimentos que vêm em latas e duram muito tempo.', 'São alimentos que passam por muitas mudanças na indústria.', 'São alimentos obtidos diretamente da natureza, sem alterações.', 'São alimentos congelados que precisam ser aquecidos.'], answer: 'São alimentos obtidos diretamente da natureza, sem alterações.', explanation: 'In natura significa "da natureza". São alimentos como frutas, verduras, legumes e ovos, consumidos como são colhidos.' },
+            { question: 'Qual é a principal função dos lipídios (gorduras) no nosso corpo?', options: ['Ajudar na formação dos ossos e dos dentes.', 'Construir os músculos e reparar os tecidos.', 'Servir como reserva de energia para o corpo.', 'Fornecer energia rápida para as atividades.'], answer: 'Servir como reserva de energia para o corpo.', explanation: 'Os lipídios funcionam como um estoque de energia, além de proteger os órgãos e ajudar a manter a temperatura do corpo.' },
+            { question: 'As vitaminas e os sais minerais são encontrados principalmente em qual grupo de alimentos?', options: ['Em carnes vermelhas, frango e peixes.', 'Em pães, arroz branco e biscoitos.', 'Em frutas, legumes e verduras coloridas.', 'Em óleos, manteiga e castanhas.'], answer: 'Em frutas, legumes e verduras coloridas.', explanation: 'Um prato colorido, cheio de frutas, legumes e verduras, é a melhor forma de garantir a ingestão de diversas vitaminas e sais minerais.' },
+            { question: 'Refrigerantes, salgadinhos de pacote e biscoitos recheados são exemplos de que tipo de alimento?', options: ['Alimentos in natura.', 'Alimentos processados.', 'Alimentos ultraprocessados.', 'Alimentos orgânicos.'], answer: 'Alimentos ultraprocessados.', explanation: 'Esses produtos passam por muitas etapas na indústria e recebem muitos aditivos químicos, como corantes e conservantes. Por isso, seu consumo deve ser evitado.' },
+            { question: 'O que é a obesidade?', options: ['É a falta de nutrientes, que deixa a pessoa fraca.', 'É o excesso de gordura acumulada no corpo.', 'É uma alergia a vários tipos de alimentos.', 'É a dificuldade de digerir açúcares.'], answer: 'É o excesso de gordura acumulada no corpo.', explanation: 'A obesidade ocorre quando uma pessoa consome mais energia do que gasta, e essa energia extra é armazenada no corpo na forma de gordura.' },
+            { question: 'O ser humano que se alimenta de plantas e de animais é classificado como:', options: ['Herbívoro.', 'Carnívoro.', 'Onívoro.', 'Insetívoro.'], answer: 'Onívoro.', explanation: 'Nós, seres humanos, somos onívoros, pois nossa alimentação inclui tanto produtos de origem vegetal quanto de origem animal.' },
+            { question: 'Por que uma alimentação variada e colorida é considerada mais saudável?', options: ['Porque pratos coloridos são mais bonitos e abrem o apetite.', 'Porque cada cor de alimento geralmente oferece tipos diferentes de vitaminas e minerais.', 'Porque misturar cores evita que a comida estrague rapidamente.', 'Porque alimentos coloridos têm sempre menos calorias e gorduras.'], answer: 'Porque cada cor de alimento geralmente oferece tipos diferentes de vitaminas e minerais.', explanation: 'Alimentos vermelhos, verdes, amarelos e roxos, por exemplo, contêm diferentes vitaminas e minerais. Um prato colorido é um sinal de que você está consumindo uma grande variedade de nutrientes.' },
+            { question: 'Qual é o perigo de consumir alimentos ultraprocessados com frequência?', options: ['Eles não têm sabor e são difíceis de mastigar e engolir.', 'Eles podem estragar muito rápido, mesmo dentro da embalagem.', 'Eles têm muito açúcar, gordura, sal e aditivos químicos.', 'Eles não fornecem nenhuma energia para o nosso corpo.'], answer: 'Eles têm muito açúcar, gordura, sal e aditivos químicos.', explanation: 'O consumo excessivo desses ingredientes está ligado a problemas de saúde como obesidade, diabetes e pressão alta.' },
+            { question: 'O que significa a informação "%VD" (Valores Diários) no rótulo de um alimento?', options: ['Indica a porcentagem de água presente no alimento.', 'Mostra o quanto uma porção do alimento contribui para a dieta diária.', 'É o preço de venda do produto com desconto para o consumidor.', 'É a data de validade do produto em dias, meses e anos.'], answer: 'Mostra o quanto uma porção do alimento contribui para a dieta diária.', explanation: 'O %VD ajuda a entender se aquele alimento tem muito ou pouco de um nutriente (como sódio ou gordura), com base em uma dieta de 2.000 calorias.' },
+            { question: 'Uma criança que passa muitas horas jogando videogame e come salgadinhos todos os dias tem mais risco de desenvolver obesidade. Por quê?', options: ['Porque os videogames emitem uma radiação que causa o ganho de peso.', 'Porque ela consome muita energia (calorias) e gasta pouca energia (sedentarismo).', 'Porque os salgadinhos contêm vitaminas que engordam as pessoas.', 'Porque a luz da tela faz o corpo sentir mais fome do que o normal.'], answer: 'Porque ela consome muita energia (calorias) e gasta pouca energia (sedentarismo).', explanation: 'Essa é a combinação que leva ao acúmulo de gordura: alto consumo de calorias (dos alimentos ultraprocessados) e baixo gasto de energia (por ficar parado).' },
+            { question: 'Um atleta precisa de muita energia para uma competição. Qual grupo de alimentos ele deve priorizar em sua refeição antes da prova?', options: ['Alimentos ricos em proteínas, como um bife grande, para ter mais força.', 'Alimentos ricos em vitaminas, como uma salada de folhas, para não ficar doente.', 'Alimentos ricos em carboidratos, como macarrão ou batata, para ter energia.', 'Alimentos ricos em lipídios, como abacate e castanhas, para a reserva.'], answer: 'Alimentos ricos em carboidratos, como macarrão ou batata, para ter energia.', explanation: 'Os carboidratos são a principal fonte de energia rápida para o corpo. Por isso, são ideais para serem consumidos antes de atividades físicas intensas.' },
+            { question: 'Ao ler o rótulo de um pão, você vê que o primeiro ingrediente da lista é "farinha de trigo integral". O que isso significa?', options: ['Que o pão é feito apenas com esse único ingrediente.', 'Que este é o ingrediente em maior quantidade no pão.', 'Que este é o ingrediente com menos calorias no pão.', 'Que o pão não contém nenhum tipo de açúcar ou sal.'], answer: 'Que este é o ingrediente em maior quantidade no pão.', explanation: 'Por lei, a lista de ingredientes em um rótulo deve estar em ordem decrescente, ou seja, do ingrediente em maior quantidade para o em menor quantidade.' },
+            { question: 'Seu amigo só gosta de comer frango, arroz e batata frita. Que conselho você daria a ele para ter uma alimentação mais saudável?', options: ['Continuar comendo assim, pois já tem proteína e carboidrato.', 'Trocar a batata frita por batata cozida para diminuir a gordura.', 'Adicionar legumes e verduras coloridas ao prato todos os dias.', 'Comer apenas a salada e deixar o resto da comida de lado.'], answer: 'Adicionar legumes e verduras coloridas ao prato todos os dias.', explanation: 'Este é o melhor conselho, pois adicionar alimentos como salada, tomate e brócolis vai fornecer as vitaminas, minerais e fibras que estão faltando na refeição dele.' },
+            { question: 'Uma criança de 10 anos pratica natação três vezes por semana. Sua necessidade diária de energia será:', options: ['Menor que a de uma criança que não faz atividade física.', 'Exatamente igual à de um adulto que trabalha sentado.', 'Maior que a de uma criança que passa o dia no sofá.', 'Tão alta que ela pode comer doces e frituras à vontade.'], answer: 'Maior que a de uma criança que passa o dia no sofá.', explanation: 'Quem pratica esportes gasta mais energia e, por isso, precisa consumir mais calorias de alimentos saudáveis para suprir essa necessidade.' },
+            { question: 'Analisando as informações nutricionais de um biscoito recheado e de uma maçã, qual é a melhor escolha para um lanche saudável e por quê?', options: ['O biscoito, porque ele dá mais energia rápida e é mais gostoso.', 'A maçã, porque tem vitaminas, fibras e menos açúcar adicionado.', 'Os dois são iguais, pois ambos são fontes de carboidratos.', 'Nenhum dos dois, pois lanches entre as refeições fazem mal.'], answer: 'A maçã, porque tem vitaminas, fibras e menos açúcar adicionado.', explanation: 'O biscoito recheado é um ultraprocessado rico em açúcar, gordura e aditivos, sendo uma fonte de "calorias vazias" (sem nutrientes).' },
+            { question: 'Por que a subnutrição (falta de comida) e a obesidade (excesso de peso) são considerados dois lados do mesmo problema de má alimentação?', options: ['Porque as duas condições só afetam pessoas que vivem no mesmo país.', 'Porque quem é subnutrido na infância sempre se torna obeso na vida adulta.', 'Porque ambas são resultado de uma dieta desequilibrada e não saudável.', 'Porque as duas são tratadas com os mesmos remédios e vitaminas.'], answer: 'Porque ambas são resultado de uma dieta desequilibrada e não saudável.', explanation: 'A subnutrição é a falta de nutrientes e calorias, enquanto a obesidade muitas vezes vem do excesso de calorias e da falta de nutrientes de qualidade. Ambas mostram um desequilíbrio na alimentação.' },
+            { question: 'Uma campanha do governo quer diminuir a obesidade infantil no país. Qual das ações abaixo teria o maior impacto positivo?', options: ['Proibir a venda de frutas e verduras perto das escolas.', 'Aumentar a publicidade de refrigerantes e salgadinhos na TV.', 'Incentivar brincadeiras ao ar livre e a oferta de lanches saudáveis nas escolas.', 'Distribuir cupons de desconto para redes de fast-food para todas as famílias.'], answer: 'Incentivar brincadeiras ao ar livre e a oferta de lanches saudáveis nas escolas.', explanation: 'Essa ação ataca as duas principais causas da obesidade: o sedentarismo (falta de atividade física) e o consumo de alimentos não saudáveis.' },
+            { question: 'Avalie a seguinte frase: "Para ser saudável, basta comer pouco e evitar gorduras". Esta afirmação está correta?', options: ['Sim, comer pouco e cortar toda a gordura é o segredo da saúde.', 'Não, pois precisamos comer a quantidade certa e de todos os nutrientes.', 'Sim, porque a gordura é sempre a maior vilã da nossa alimentação.', 'Não, o importante é comer muito, mas apenas alimentos verdes.'], answer: 'Não, pois precisamos comer a quantidade certa e de todos os nutrientes.', explanation: 'A saúde depende do equilíbrio. Precisamos da quantidade adequada de energia e de uma variedade de nutrientes, incluindo carboidratos, proteínas e gorduras boas.' },
+        ];
+
+
+        // --- FUNÇÕES GERAIS E DE TELA ---
+        function showScreen(screenToShow) {
+            document.querySelectorAll('.screen').forEach(screen => screen.classList.add('hidden'));
+            screenToShow.classList.remove('hidden');
+        }
+
+        function toggleButtonLoader(button, show) {
+            const buttonText = button.querySelector('.button-text');
+            const loader = button.querySelector('.loader');
+            if (buttonText && loader) {
+                buttonText.style.display = show ? 'none' : 'inline';
+                loader.style.display = show ? 'inline-block' : 'none';
+            }
+            button.disabled = show;
+        }
+
+        async function callAppsScript(action, data) {
+            try {
+                const response = await fetch(APPS_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    redirect: 'follow',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8', },
+                    body: JSON.stringify({ action, ...data })
+                });
+                if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+                return await response.json();
+            } catch (error) {
+                console.error("Erro ao contatar o Apps Script:", error);
+                return { status: 'error', message: 'Falha de comunicação. Verifique a publicação do script e sua conexão.' };
+            }
+        }
+        
+        function capitalizeName(name) {
+            return name.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+        }
+
+        function handleSuccessfulLogin(userData) {
+            const firstName = userData.name.split(' ')[0];
+            loggedInUser = { ...userData, firstName };
+            sessionStorage.setItem('loggedInUser', JSON.stringify(loggedInUser));
+            playerFirstNameEl.textContent = firstName;
+            showScreen(videoScreen);
+        }
+
+        // --- LÓGICA DE LOGIN E CADASTRO ---
+        loginButton.addEventListener('click', async () => {
+            const code = loginCodeInput.value.trim();
+            const password = loginPasswordInput.value.trim();
+            loginMessage.textContent = '';
+            if (!code || !password) {
+                loginMessage.textContent = 'Preencha o código e a senha.';
+                return;
+            }
+            toggleButtonLoader(loginButton, true);
+            const result = await callAppsScript('login', { code, password });
+            toggleButtonLoader(loginButton, false);
+            if (result.status === 'success') {
+                handleSuccessfulLogin({ name: result.name, code: code, turma: result.turma });
+            } else if (result.status === 'not_found') {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+                registerCodeInput.value = code;
+                registerCodeInput.removeAttribute('readonly');
+            } else {
+                loginMessage.textContent = result.message || 'Ocorreu um erro.';
+            }
+        });
+        
+        goToRegisterButton.addEventListener('click', () => {
+            loginForm.classList.add('hidden');
+            registerForm.classList.remove('hidden');
+            loginMessage.textContent = '';
+            registerCodeInput.removeAttribute('readonly');
+            registerCodeInput.value = '';
+        });
+
+        registerButton.addEventListener('click', async () => {
+            const rawName = registerNameInput.value.trim();
+            const turma = registerClassInput.value;
+            const code = registerCodeInput.value.trim();
+            const password = registerPasswordInput.value.trim();
+            registerMessage.textContent = '';
+            if (!rawName || !turma || !code || !password) {
+                registerMessage.textContent = 'Todos os campos são obrigatórios.';
+                return;
+            }
+            const name = capitalizeName(rawName);
+            toggleButtonLoader(registerButton, true);
+            const data = { name, turma, code, password };
+            const result = await callAppsScript('register', data);
+            toggleButtonLoader(registerButton, false);
+            if (result.status === 'success') {
+                handleSuccessfulLogin({ name: name, code: code, turma: turma });
+            } else {
+                registerMessage.textContent = result.message || 'Ocorreu um erro.';
+            }
+        });
+
+        backToLoginButton.addEventListener('click', () => {
+            registerForm.classList.add('hidden');
+            loginForm.classList.remove('hidden');
+            registerMessage.textContent = '';
+        });
+
+        loginPasswordInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') loginButton.click(); });
+        loginCodeInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') loginButton.click(); });
+        registerPasswordInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') registerButton.click(); });
+        registerCodeInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') registerButton.click(); });
+        registerNameInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') registerButton.click(); });
+
+        window.addEventListener('load', () => {
+            const user = sessionStorage.getItem('loggedInUser');
+            if (user) {
+                loggedInUser = JSON.parse(user);
+                playerFirstNameEl.textContent = loggedInUser.firstName;
+                showScreen(videoScreen);
+            } else {
+                showScreen(loginScreen);
+            }
+            updateScoreDisplay();
+        });
+        
+        // --- LÓGICA DO VÍDEO ---
+        let player;
+        let progressCheckInterval;
+        let maxWatchedTime = 0;
+
+        function updateScoreDisplay() {
+            document.querySelectorAll('.score-display').forEach(el => el.textContent = score);
+        }
+        
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                videoId: '-qKkn7aVYI0',
+                playerVars: { 'playsinline': 1, 'rel': 0, 'controls': 1 },
+                events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange }
+            });
+        }
+
+        function onPlayerReady(event) {
+            maxWatchedTime = 0;
+            videoPointsInvalidated = false;
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.PLAYING) {
+                clearInterval(progressCheckInterval); 
+                progressCheckInterval = setInterval(() => {
+                    const currentTime = player.getCurrentTime();
+                    const duration = player.getDuration();
+
+                    if (currentTime > maxWatchedTime + 1.5) {
+                        player.seekTo(maxWatchedTime, true);
+                    } else if (currentTime > maxWatchedTime) {
+                        maxWatchedTime = currentTime;
+                    }
+
+                    if ((maxWatchedTime / duration) >= 0.9) {
+                        if (continueBtn.disabled) {
+                            continueBtn.disabled = false;
+                            continueBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        }
+                    }
+                }, 500);
+            } else {
+                clearInterval(progressCheckInterval);
+            }
+        }
+
+        continueBtn.addEventListener('click', () => {
+            if (!continueBtn.disabled) {
+                showScreen(gameScreen);
+                startGame();
+            }
+        });
+
+        skipVideoBtn.addEventListener('click', () => {
+            score = 0;
+            updateScoreDisplay();
+            showScreen(gameScreen);
+            startGame();
+        });
+
+        // --- LÓGICA DO QUIZ ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function startGame() {
+            player.stopVideo();
+            score = 0;
+            currentQuestionIndex = 0;
+            shuffledQuestions = shuffleArray([...questions]).slice(0, 12); // Pega 12 questões aleatórias
+            startTime = new Date();
+            updateScoreDisplay();
+            displayNextQuestion();
+        }
+
+        function displayNextQuestion() {
+            const currentQuestion = shuffledQuestions[currentQuestionIndex];
+            questionContainer.textContent = currentQuestion.question;
+            optionsContainer.innerHTML = '';
+
+            const shuffledOptions = shuffleArray([...currentQuestion.options]);
+
+            shuffledOptions.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.classList.add('option-button', 'w-full', 'bg-white', 'text-sky-700', 'text-lg', 'sm:text-xl', 'font-bold', 'py-4', 'px-2', 'rounded-xl', 'shadow-lg', 'border-b-8', 'border-sky-300', 'hover:border-sky-400');
+                button.addEventListener('click', handleAnswer);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function handleAnswer(e) {
+            const selectedOption = e.target.textContent;
+            const currentQuestion = shuffledQuestions[currentQuestionIndex];
+            const correctAnswer = currentQuestion.answer;
+            const explanation = currentQuestion.explanation;
+
+            optionsContainer.querySelectorAll('button').forEach(btn => btn.disabled = true);
+
+            if (selectedOption === correctAnswer) {
+                score++;
+                showFeedback(`Correto! +1 Ponto! 🎉`, explanation, true);
+                e.target.classList.remove('bg-white', 'border-sky-300');
+                e.target.classList.add('bg-green-400', 'border-green-600', 'text-white');
+            } else {
+                const wrongFeedbackMsg = `Ops! A resposta certa é "${correctAnswer}".`;
+                showFeedback(wrongFeedbackMsg, explanation, false);
+                e.target.classList.remove('bg-white', 'border-sky-300');
+                e.target.classList.add('bg-red-400', 'border-red-600', 'text-white');
+            }
+            
+            updateScoreDisplay();
+        }
+
+        function showFeedback(message, explanation, isCorrect) {
+            feedbackEl.innerHTML = `
+                <strong class="block text-3xl">${message}</strong>
+                <span class="text-xl mt-2 block">${explanation}</span>
+                <button id="continue-feedback-btn" class="mt-4 bg-white text-sky-800 text-xl font-bold py-2 px-8 rounded-xl shadow-md hover:bg-gray-200 transition">Continuar</button>
+            `;
+            feedbackEl.className = `fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 p-6 sm:p-8 rounded-2xl text-white font-bold shadow-2xl opacity-0 w-11/12 max-w-sm text-center ${isCorrect ? 'bg-green-500' : 'bg-red-500'}`;
+            
+            feedbackEl.classList.remove('opacity-0', 'pointer-events-none');
+            feedbackEl.style.transform = 'translate(-50%, -50%) scale(1)';
+
+            document.getElementById('continue-feedback-btn').addEventListener('click', () => {
+                feedbackEl.style.transform = 'translate(-50%, -50%) scale(0.5)';
+                feedbackEl.classList.add('opacity-0', 'pointer-events-none');
+                
+                currentQuestionIndex++;
+                if (currentQuestionIndex >= shuffledQuestions.length) {
+                    endGame();
+                } else {
+                    displayNextQuestion();
+                }
+            }, { once: true });
+        }
+        
+        function getMotivationalMessage(finalScore) {
+            if (finalScore >= 10) {
+                return "Excelente, " + loggedInUser.firstName + "! Você domina as ciências! 🏆";
+            } else if (finalScore >= 6) {
+                return "Muito bem, " + loggedInUser.firstName + "! Continue praticando para ficar ainda melhor. 👍";
+            } else {
+                return "Não desista, " + loggedInUser.firstName + "! Cada tentativa é um passo para aprender mais. ✨";
+            }
+        }
+        
+        // --- LÓGICA DE FIM DE JOGO E RANKING ---
+        function resetGame() {
+            score = 0;
+            currentQuestionIndex = 0;
+            videoPointsInvalidated = false;
+            maxWatchedTime = 0;
+            startTime = null;
+
+            updateScoreDisplay();
+            
+            if (player && typeof player.seekTo === 'function') {
+                player.seekTo(0, true);
+                player.stopVideo();
+            }
+            
+            continueBtn.disabled = true;
+            continueBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            
+            showScreen(videoScreen);
+        }
+
+        async function endGame() {
+            const endTime = new Date();
+            const timeSpent = Math.round((endTime - startTime) / 1000);
+            
+            showScreen(endScreen);
+            endScreenContent.classList.remove('hidden');
+            playAgainButton.classList.remove('hidden');
+            backFromRankingButton.classList.add('hidden');
+            document.getElementById('final-score').textContent = score;
+            finalMessageEl.textContent = getMotivationalMessage(score);
+            
+            const result = await callAppsScript('saveScoreAndGetRanking', { 
+                fullName: loggedInUser.name, 
+                turma: loggedInUser.turma, 
+                score: score, 
+                time: timeSpent,
+                nomeDoJogo: NOME_DESTE_JOGO,
+                code: loggedInUser.code
+            });
+            
+            if (result.status === 'success') {
+                populateRankingTable(result.ranking);
+            } else {
+                document.getElementById('ranking-body').innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500">${result.message}</td></tr>`;
+            }
+        }
+        
+        async function displayRanking() {
+            showScreen(endScreen);
+            endScreenContent.classList.add('hidden');
+            playAgainButton.classList.add('hidden');
+            backFromRankingButton.classList.remove('hidden');
+
+            const result = await callAppsScript('getRanking', { nomeDoJogo: NOME_DESTE_JOGO });
+            if (result.status === 'success') {
+                populateRankingTable(result.ranking);
+            } else {
+                document.getElementById('ranking-body').innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-500">${result.message}</td></tr>`;
+            }
+        }
+
+        viewRankingButton.addEventListener('click', displayRanking);
+        
+        backFromRankingButton.addEventListener('click', () => {
+            showScreen(loginScreen);
+        });
+
+        function populateRankingTable(ranking) {
+            const tbody = document.getElementById('ranking-body');
+            tbody.innerHTML = '';
+            if(ranking.length === 0){
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center">Ainda não há pontuações. Seja o primeiro!</td></tr>`;
+                return;
+            }
+            ranking.forEach((entry, index) => {
+                const isCurrentUser = loggedInUser && entry.code === loggedInUser.code;
+                const row = `
+                    <tr class="border-b border-sky-100 ${isCurrentUser ? 'bg-yellow-200' : ''}">
+                        <td class="p-2 font-bold">${index + 1}</td>
+                        <td class="p-2">${entry.name}</td>
+                        <td class="p-2">${entry.score}</td>
+                        <td class="p-2">${entry.turma}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        playAgainButton.addEventListener('click', resetGame);
+
+    </script>
+</body>
+</html>
